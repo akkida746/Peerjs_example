@@ -55,6 +55,8 @@
                 var lastPeerId = null;
                 var peer = null; // own peer object
                 var conn = null;
+                var connections = new Array();
+                var index = 0;
                 var recvIdInput = document.getElementById("receiver-id");
                 var status = document.getElementById("status");
                 var message = document.getElementById("message");
@@ -126,9 +128,9 @@
                  */
                 function join() {
                     // Close old connection
-                    if (conn) {
-                        conn.close();
-                    }
+                    // if (conn) {
+                    //     conn.close();
+                    // }
 
                     // Create connection to destination peer specified in the input field
                     conn = peer.connect(recvIdInput.value, {
@@ -151,6 +153,8 @@
                     conn.on('close', function () {
                         status.innerHTML = "Connection closed";
                     });
+
+                    connections[index++] = conn;
                 };
 
                 /**
@@ -175,13 +179,24 @@
                  * This will only occur if the connection is still alive.
                  */
                  function signal(sigName) {
-                    if (conn && conn.open) {
+
+                    connections.forEach(conn => {
+                        if (conn && conn.open) {
                         conn.send(sigName);
                         console.log(sigName + " signal sent");
                         addMessage(cueString + sigName);
                     } else {
                         console.log('Connection is closed');
-                    }
+                    } 
+                    });
+
+                    // if (conn && conn.open) {
+                    //     conn.send(sigName);
+                    //     console.log(sigName + " signal sent");
+                    //     addMessage(cueString + sigName);
+                    // } else {
+                    //     console.log('Connection is closed');
+                    // }
                 }
 
                 goButton.addEventListener('click', function () {
@@ -231,15 +246,28 @@
                 });
                 // Send message
                 sendButton.addEventListener('click', function () {
-                    if (conn && conn.open) {
-                        var msg = sendMessageBox.value;
-                        sendMessageBox.value = "";
-                        conn.send(msg);
-                        console.log("Sent: " + msg);
-                        addMessage("<span class=\"selfMsg\">Self: </span> " + msg);
-                    } else {
-                        console.log('Connection is closed');
-                    }
+
+                    connections.forEach(conn => {
+                        if (conn && conn.open) {
+                            var msg = sendMessageBox.value;
+                            sendMessageBox.value = "";
+                            conn.send(msg);
+                            console.log("Sent: " + msg);
+                            addMessage("<span class=\"selfMsg\">Self: </span> " + msg);
+                        } else {
+                            console.log('Connection is closed');
+                        }
+                    });
+
+                    // if (conn && conn.open) {
+                    //     var msg = sendMessageBox.value;
+                    //     sendMessageBox.value = "";
+                    //     conn.send(msg);
+                    //     console.log("Sent: " + msg);
+                    //     addMessage("<span class=\"selfMsg\">Self: </span> " + msg);
+                    // } else {
+                    //     console.log('Connection is closed');
+                    // }
                 });
 
                 // Clear messages box
